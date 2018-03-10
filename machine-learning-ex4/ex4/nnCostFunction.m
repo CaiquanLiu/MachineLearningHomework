@@ -1,5 +1,6 @@
 function [J grad] = nnCostFunction(nn_params, ...
-                                   input_layer_size, ...
+
+input_layer_size, ...
                                    hidden_layer_size, ...
                                    num_labels, ...
                                    X, y, lambda)
@@ -39,6 +40,10 @@ Theta2_grad = zeros(size(Theta2));
 %         cost function computation is correct by verifying the cost
 %         computed in ex4.m
 %
+
+
+
+
 % Part 2: Implement the backpropagation algorithm to compute the gradients
 %         Theta1_grad and Theta2_grad. You should return the partial derivatives of
 %         the cost function with respect to Theta1 and Theta2 in Theta1_grad and
@@ -62,18 +67,46 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
+X=[ones(m,1) X];
+y_one_in_all=zeros(num_labels, m);
+
+for i=1:m
+	y_one_in_all(y(i), i)=1;
+end
+
+a2=sigmoid(X*Theta1');
+a2=[ones(m,1) a2];
+a3=sigmoid(a2*Theta2');
+
+for i=1:m
+	J=J-log(a3(i,:))*y_one_in_all(:,i)-(log(1-a3(i,:))*(1-y_one_in_all(:,i)));
+end
+
+J=J/m;
+
+J=J+lambda/2/m*(sum(sum(Theta1(:, 2:end).^2))+sum(sum(Theta2(:,2:end).^2)));
+
+Delta1=zeros(size(Theta1));
+Delta2=zeros(size(Theta2));
+
+z2=X*Theta1';
+z2=[ones(m,1) z2];
+
+for i=1:m
+	delta3=a3(i,:)'-y_one_in_all(:,i);
+	delta2=Theta2'*delta3.*sigmoidGradient(z2(i,:)');
+
+	Delta1=Delta1+delta2(2:end)*X(i,:);
+	Delta2=Delta2+delta3*a2(i,:);
+end
 
 
+Theta1_grad=Delta1/m;
+Theta2_grad=Delta2/m;
 
 
-
-
-
-
-
-
-
-
+Theta1_grad(:, 2:end)=Theta1_grad(:,2:end)+lambda/m*Theta1(:, 2:end);
+Theta2_grad(:, 2:end)=Theta2_grad(:, 2:end)+lambda/m*Theta2(:, 2:end);
 
 
 
